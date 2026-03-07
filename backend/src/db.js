@@ -12,6 +12,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     host TEXT NOT NULL,
+    domain TEXT,
     ssh_user TEXT DEFAULT 'root',
     ssh_port INTEGER DEFAULT 22,
     ssh_key TEXT,
@@ -28,9 +29,26 @@ db.exec(`
     port INTEGER NOT NULL,
     secret TEXT NOT NULL,
     status TEXT DEFAULT 'active',
+    note TEXT DEFAULT '',
+    expires_at DATETIME DEFAULT NULL,
+    traffic_limit_gb REAL DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (node_id) REFERENCES nodes(id) ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS connections_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    node_id INTEGER NOT NULL,
+    user_name TEXT NOT NULL,
+    connections INTEGER DEFAULT 0,
+    recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
+
+// Migrate existing tables if needed
+try { db.exec("ALTER TABLE users ADD COLUMN note TEXT DEFAULT ''"); } catch {}
+try { db.exec("ALTER TABLE users ADD COLUMN expires_at DATETIME DEFAULT NULL"); } catch {}
+try { db.exec("ALTER TABLE users ADD COLUMN traffic_limit_gb REAL DEFAULT NULL"); } catch {}
+try { db.exec("ALTER TABLE nodes ADD COLUMN domain TEXT"); } catch {}
 
 module.exports = db;

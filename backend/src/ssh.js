@@ -89,6 +89,29 @@ async function getRemoteUsers(node) {
   }
 }
 
+async function getTraffic(node) {
+  try {
+    const r = await sshExec(node,
+      "docker stats --no-stream --format '{{.Name}}|{{.NetIO}}' 2>/dev/null | grep '^mtg-'"
+    );
+    const result = {};
+    for (const line of r.output.split('\n')) {
+      if (!line.includes('|')) continue;
+      const [name, netio] = line.split('|');
+      const userName = name.replace('mtg-', '').trim();
+      // NetIO format: "1.23MB / 4.56GB"
+      const parts = netio.trim().split(' / ');
+      result[userName] = {
+        rx: parts[0] || '0B',
+        tx: parts[1] || '0B'
+      };
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
 async function createRemoteUser(node, name) {
   const baseDir = node.base_dir;
   const startPort = node.start_port || 4433;
@@ -146,6 +169,7 @@ module.exports = {
   checkNode,
   getNodeStatus,
   getRemoteUsers,
+  getTraffic,
   createRemoteUser,
   removeRemoteUser,
   stopRemoteUser,
