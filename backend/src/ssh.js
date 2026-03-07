@@ -19,8 +19,10 @@ function sshExec(node, command) {
       config.password = node.ssh_password;
     }
 
+    const wrappedCommand = command;
+
     conn.on('ready', () => {
-      conn.exec(command, (err, stream) => {
+      conn.exec(wrappedCommand, (err, stream) => {
         if (err) { conn.end(); return reject(err); }
         stream.on('data', d => { output += d.toString(); });
         stream.stderr.on('data', d => { errOutput += d.toString(); });
