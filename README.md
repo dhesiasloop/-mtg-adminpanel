@@ -2,7 +2,7 @@
 
 Веб-панель для управления MTProto прокси ([mtg v2](https://github.com/9seconds/mtg)) на нескольких серверах через SSH.
 
-![Stack](https://img.shields.io/badge/Node.js-20-green) ![Docker](https://img.shields.io/badge/Docker-Compose-blue) ![SQLite](https://img.shields.io/badge/DB-SQLite-lightgrey) ![License](https://img.shields.io/badge/License-MIT-yellow)
+![Stack](https://img.shields.io/badge/Node.js-20-green) ![Docker](https://img.shields.io/badge/Docker-Compose-blue) ![SQLite](https://img.shields.io/badge/DB-SQLite-lightgrey) ![License](https://img.shields.io/badge/License-MIT-yellow) ![Version](https://img.shields.io/badge/version-1.2.0-cyan)
 
 ---
 
@@ -11,8 +11,14 @@
 - 🖥️ Управление несколькими нодами из одного интерфейса
 - ➕ Добавление нод через веб — SSH пароль или ключ
 - 👥 Создание юзеров с уникальной ссылкой `tg://proxy`
+- 📊 Трафик входящий/исходящий по каждому юзеру (обновляется каждые 30 сек)
+- 📈 График подключений за последние 24 часа
+- ⏱️ Дата истечения доступа с автоудалением по расписанию
+- 🚦 Лимит трафика на юзера
+- 📝 Заметка к юзеру (например "Иван, оплатил до 01.04")
+- ✏️ Редактирование юзера без пересоздания
+- 🔄 Проверка версии mtg и обновление одной кнопкой
 - ⏸️ Остановка / запуск отдельных юзеров
-- 📊 Дашборд с live-статусом всех нод
 - 🔗 Копирование ссылки одним кликом
 - 📋 Единая таблица всех юзеров со всех нод
 
@@ -39,15 +45,18 @@ bash <(curl -fsSL https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/mai
 bash <(curl -fsSL https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/main/uninstall.sh)
 ```
 
-Удалит контейнер, файлы, сервис и Nginx конфиг.
-
 ---
 
 ## Требования
 
+**Сервер панели:**
 - Ubuntu 20+ / Debian 11+
 - Docker + Docker Compose
-- На нодах: Docker, открытые порты 4433+ (TCP)
+
+**Ноды:**
+- Docker + Docker Compose
+- Открытые порты 4433+ (TCP) в файрволе / Security Group
+- Если SSH user не root — добавить в группу docker: `usermod -aG docker <user>`
 
 ---
 
@@ -120,19 +129,20 @@ DATA_DIR=/data                 # путь к базе данных
 1. Открой панель → **Ноды** → **Добавить ноду**
 2. Заполни: название, Host / IP, SSH User, SSH Port, пароль или ключ
 3. Нажми **Ping** — убедись что нода онлайн ✅
-4. Перейди в **Управление** → **Добавить юзера**
+4. Кликни на строку ноды → **Добавить юзера**
 
 ### Требования к ноде
 - Docker + Docker Compose
 - Открытый порт `4433+` TCP в файрволе
+- Если пользователь не root: `usermod -aG docker <user>`
 
 ---
 
 ## Управление контейнером
 
 ```bash
-docker logs mtg-panel -f          # логи
-docker restart mtg-panel          # перезапуск
+docker logs mtg-panel -f                    # логи
+docker restart mtg-panel                    # перезапуск
 cd /opt/mtg-adminpanel && docker compose down   # остановка
 cd /opt/mtg-adminpanel && git pull && docker compose up -d --build  # обновление
 ```
@@ -172,11 +182,16 @@ mtg-adminpanel/
 | PUT | `/api/nodes/:id` | Редактировать ноду |
 | DELETE | `/api/nodes/:id` | Удалить ноду |
 | GET | `/api/nodes/:id/check` | Ping ноды |
+| GET | `/api/nodes/:id/traffic` | Трафик юзеров |
+| GET | `/api/nodes/:id/mtg-version` | Версия mtg |
+| POST | `/api/nodes/:id/mtg-update` | Обновить mtg |
 | GET | `/api/nodes/:id/users` | Список юзеров |
 | POST | `/api/nodes/:id/users` | Добавить юзера |
+| PUT | `/api/nodes/:id/users/:name` | Редактировать юзера |
 | DELETE | `/api/nodes/:id/users/:name` | Удалить юзера |
 | POST | `/api/nodes/:id/users/:name/stop` | Остановить |
 | POST | `/api/nodes/:id/users/:name/start` | Запустить |
+| GET | `/api/nodes/:id/users/:name/history` | История подключений |
 | GET | `/api/status` | Статус всех нод |
 
 ---
