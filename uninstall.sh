@@ -1,4 +1,5 @@
 #!/bin/bash
+cd /tmp  # ensure valid working directory before we delete install dir
 set +H
 
 RED='\033[0;31m'
