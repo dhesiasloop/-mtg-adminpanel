@@ -133,8 +133,14 @@ fi
 # ── Клонирование репозитория ─────────────────────────────────
 print_step "Загрузка MTG AdminPanel..."
 if [ -d "$INSTALL_DIR" ]; then
-    print_warn "Директория $INSTALL_DIR уже существует — обновляем..."
-    cd "$INSTALL_DIR" && git pull -q
+    if [ -d "$INSTALL_DIR/.git" ]; then
+        print_warn "Директория $INSTALL_DIR уже существует — обновляем..."
+        cd "$INSTALL_DIR" && git pull -q
+    else
+        print_warn "Директория $INSTALL_DIR существует но не является git репо — переустанавливаем..."
+        rm -rf "$INSTALL_DIR"
+        git clone -q https://github.com/MaksimTMB/mtg-adminpanel.git "$INSTALL_DIR"
+    fi
 else
     git clone -q https://github.com/MaksimTMB/mtg-adminpanel.git "$INSTALL_DIR"
 fi
