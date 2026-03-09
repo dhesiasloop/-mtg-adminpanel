@@ -206,7 +206,7 @@ server {
 }
 
 server {
-    listen 443 ssl;
+    listen 8443 ssl;
     server_name $DOMAIN;
 
     ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
@@ -260,7 +260,7 @@ echo -e "${CYAN}╚════════════════════�
 echo ""
 
 if [ "$SSL_CHOICE" == "2" ] && [ -n "$DOMAIN" ]; then
-    echo -e "  🌐 Панель:  ${CYAN}https://$DOMAIN${NC}"
+    echo -e "  🌐 Панель:  ${CYAN}https://$DOMAIN:8443${NC}"
 else
     IP=$(curl -s -4 ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
     echo -e "  🌐 Панель:  ${CYAN}http://$IP:$PORT${NC}"
