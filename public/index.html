@@ -864,9 +864,8 @@ function VersionBlock({ nodes }) {
               <div style={{fontSize:11,fontWeight:600,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>
                 MTG прокси на нодах
               </div>
-              <div style={{fontSize:11,color:'var(--t3)',marginBottom:12,padding:'8px 12px',background:'var(--bg3)',borderRadius:8,border:'1px solid var(--b1)'}}>
-                <I.Info style={{width:11,height:11,marginRight:5,verticalAlign:'middle'}}/>
-                Update = <code style={{fontFamily:'var(--mono)',color:'var(--t2)'}}>docker pull ninесекунд/mtg:2</code> — скачивает последний патч образа
+              <div style={{fontSize:11,color:'var(--t3)',marginBottom:12,padding:'8px 12px',background:'var(--bg3)',borderRadius:8,border:'1px solid var(--b1)',lineHeight:1.6}}>
+                ℹ️ <code style={{fontFamily:'var(--mono)',color:'var(--t2)'}}>pull</code> = <code style={{fontFamily:'var(--mono)',color:'var(--t2)'}}>docker pull ninесекунд/mtg:2</code> — скачивает последний патч образа на ноду
               </div>
               <table className="ver-table" style={{tableLayout:'fixed',width:'100%'}}>
                 <colgroup>
@@ -1022,7 +1021,7 @@ function Dashboard({ nodes, onSelectNode }) {
                 </div>
                 <div className="node-actions">
                   <button className="btn btn-primary btn-sm" onClick={e=>{e.stopPropagation();onSelectNode(node);}}>
-                    <I.Users/> Юзеры
+                    <I.Users/> Клиенты {node._userCount > 0 ? <span style={{marginLeft:4,background:'rgba(255,255,255,0.2)',borderRadius:4,padding:'0 5px',fontSize:11}}>{node._userCount}</span> : null}
                   </button>
                 </div>
               </div>
@@ -1191,7 +1190,7 @@ function NodesPage({ nodes, onReload, onManage }) {
               )}
 
               <div className="node-actions" style={{marginTop:14}}>
-                <button className="btn btn-primary btn-sm" onClick={()=>onManage(node)}><I.Users/> Юзеры</button>
+                <button className="btn btn-primary btn-sm" onClick={()=>onManage(node)}><I.Users/> Клиенты</button>
                 <button className="btn btn-secondary btn-sm" onClick={()=>toggleInfo(node.id)}>
                   <I.Info/> {showInfo[node.id]?'Скрыть':'Инфо'}
                 </button>
@@ -1543,64 +1542,139 @@ function UsersPage({ node, onBack }) {
   );
 }
 
-/* ── All Users ──────────────────────────────────────────── */
+/* ── All Clients (grouped by node) ─────────────────────── */
 function AllUsers({ nodes, onSelectNode }) {
-  const [all, setAll] = useState([]);
+  const [groups, setGroups] = useState({}); // { nodeId: users[] }
   const [loading, setLoading] = useState(true);
-  const [ref, setRef] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async (silent=false) => {
-    if(silent) setRef(true); else setLoading(true);
+    if(silent) setRefreshing(true); else setLoading(true);
     try {
       const res = await Promise.all(nodes.map(async n => {
-        try { const u = await api('GET',`/api/nodes/${n.id}/users`); return u.map(x=>({...x,nodeName:n.name,node:n})); }
-        catch { return []; }
+        try { const u = await api('GET',`/api/nodes/${n.id}/users`); return [n.id, u]; }
+        catch { return [n.id, []]; }
       }));
-      setAll(res.flat());
-    } finally{setLoading(false);setRef(false);}
+      setGroups(Object.fromEntries(res));
+    } finally { setLoading(false); setRefreshing(false); }
   }, [nodes]);
 
-  useEffect(()=>{load();},[load]);
+  useEffect(() => { load(); }, [load]);
+
+  const totalUsers = Object.values(groups).reduce((a, u) => a + u.length, 0);
+  const totalActive = Object.values(groups).reduce((a, u) => a + u.filter(x => x.running).length, 0);
 
   return (
     <div className="pg">
       <div className="topbar">
         <div className="topbar-left">
-          <div className="page-title">Все <em>юзеры</em></div>
-          <div className="page-desc">{all.length} юзеров на {nodes.length} нодах</div>
+          <div className="page-title">Все <em>клиенты</em></div>
+          <div className="page-desc">
+            {loading ? '...' : `${totalUsers} клиентов · ${totalActive} активных · ${nodes.length} нод`}
+          </div>
         </div>
         <div className="topbar-right">
-          {ref && <span className="refreshing"><span className="spin"/></span>}
+          {refreshing && <span className="refreshing"><span className="spin"/></span>}
           <button className="btn btn-ghost btn-sm" onClick={()=>load(true)}><I.RefreshCw/> Обновить</button>
         </div>
       </div>
-      <div className="card">
-        {loading ? <div className="loading-center"><span className="spin"/> Загружаю...</div> : (
-          <div className="table-wrap">
-            <table>
-              <thead><tr><th>Юзер</th><th>Нода</th><th>Порт</th><th>Подкл.</th><th>Статус</th><th>Действия</th></tr></thead>
-              <tbody>
-                {all.map(u => (
-                  <tr key={u.id}>
-                    <td><span style={{fontFamily:'var(--mono)',fontWeight:600}}>{u.name}</span></td>
-                    <td><span className="badge badge-purple" style={{cursor:'pointer'}} onClick={()=>onSelectNode(u.node)}>{u.nodeName}</span></td>
-                    <td><span className="badge badge-blue">{u.port}</span></td>
-                    <td><span style={{fontFamily:'var(--mono)',fontSize:13,color:'var(--vi)'}}>{u.connections}</span></td>
-                    <td><span className={`badge ${u.running?'badge-green':'badge-red'}`}><span className={`dot ${u.running?'dot-live':''}`}/>{u.running?'active':'stopped'}</span></td>
-                    <td>
-                      <div className="acts">
-                        <button className="btn btn-icon btn-secondary btn-sm" onClick={()=>copyText(u.link)} title="Копировать ссылку"><I.Copy/></button>
-                        <button className="btn btn-ghost btn-sm" onClick={()=>onSelectNode(u.node)}>Управление →</button>
+
+      {loading ? <div className="loading-center"><span className="spin"/> Загружаю...</div> : (
+        <div style={{display:'flex',flexDirection:'column',gap:16}}>
+          {nodes.map(node => {
+            const users = groups[node.id] || [];
+            const active = users.filter(u => u.running).length;
+            return (
+              <div className="card" key={node.id}>
+                {/* Node header */}
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom: users.length ? 16 : 0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:12}}>
+                    <div className="node-icon" style={{width:34,height:34,borderRadius:9}}><I.Server/></div>
+                    <div>
+                      <div style={{fontWeight:600,fontSize:14}}>{node.name}</div>
+                      <div style={{fontSize:11,color:'var(--t3)',fontFamily:'var(--mono)'}}>{node.host}</div>
+                    </div>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    {users.length > 0 && (
+                      <div style={{display:'flex',gap:6}}>
+                        <span className="badge badge-green">{active} active</span>
+                        <span className="badge badge-purple">{users.length} total</span>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-                {!all.length && <tr><td colSpan={6}><div className="empty"><div className="empty-icon"><I.Users/></div><div className="empty-title">Нет юзеров</div></div></td></tr>}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                    )}
+                    <button className="btn btn-primary btn-sm" onClick={()=>onSelectNode(node)}>
+                      <I.Users/> Управление
+                    </button>
+                  </div>
+                </div>
+
+                {users.length > 0 && (
+                  <div className="table-wrap">
+                    <table>
+                      <thead><tr>
+                        <th>Клиент</th>
+                        <th>Порт</th>
+                        <th>Подкл.</th>
+                        <th>Трафик</th>
+                        <th>Статус</th>
+                        <th>Срок</th>
+                        <th>Заметка</th>
+                        <th></th>
+                      </tr></thead>
+                      <tbody>
+                        {users.map(u => (
+                          <tr key={u.id} style={{opacity: u.expired ? 0.5 : 1}}>
+                            <td><span style={{fontFamily:'var(--mono)',fontWeight:600,fontSize:13}}>{u.name}</span></td>
+                            <td><span className="badge badge-purple">{u.port}</span></td>
+                            <td><span style={{fontFamily:'var(--mono)',fontSize:13,color:'var(--vi)'}}>{u.connections}</span></td>
+                            <td>
+                              {u.traffic
+                                ? <span className="traf"><span className="rx">↓{u.traffic.rx}</span><span className="tx"> ↑{u.traffic.tx}</span></span>
+                                : <span style={{color:'var(--t3)',fontSize:11}}>—</span>}
+                            </td>
+                            <td>
+                              <span className={`badge ${u.running?'badge-green':'badge-red'}`}>
+                                <span className={`dot ${u.running?'dot-live':''}`}/>{u.running?'active':'stopped'}
+                              </span>
+                            </td>
+                            <td>
+                              {u.expires_at
+                                ? (() => {
+                                    const diff = new Date(u.expires_at) - new Date();
+                                    if(diff < 0) return <span className="badge badge-red">истёк</span>;
+                                    const d = Math.floor(diff/86400000);
+                                    return <span style={{fontSize:11,color: d<3?'var(--am)':'var(--t2)',fontFamily:'var(--mono)'}}>{d}д</span>;
+                                  })()
+                                : <span style={{color:'var(--t3)',fontSize:11}}>∞</span>}
+                            </td>
+                            <td style={{maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12,color:'var(--t2)'}} title={u.note}>
+                              {u.note || <span style={{color:'var(--t3)'}}>—</span>}
+                            </td>
+                            <td>
+                              <div className="acts">
+                                <button className="btn btn-icon btn-secondary btn-sm" onClick={()=>copyText(u.link)} title="Копировать ссылку"><I.Copy/></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {users.length === 0 && (
+                  <div style={{color:'var(--t3)',fontSize:12,textAlign:'center',padding:'12px 0'}}>
+                    Нет клиентов на этой ноде
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {!nodes.length && (
+            <div className="empty"><div className="empty-icon"><I.Users/></div><div className="empty-title">Нет нод</div></div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1738,7 +1812,7 @@ function App() {
   const NAV = [
     { id:'dashboard', icon:<I.LayoutDash/>, label:'Дашборд' },
     { id:'nodes',     icon:<I.Server/>,     label:'Ноды' },
-    { id:'users',     icon:<I.Users/>,      label:'Юзеры' },
+    { id:'users',     icon:<I.Users/>,      label:'Клиенты' },
     { id:'settings',  icon:<I.Settings/>,   label:'Настройки' },
   ];
 
@@ -1767,7 +1841,6 @@ function App() {
         <VersionBlock nodes={nodes}/>
 
         <div className="sidebar-footer">
-          <div className="sidebar-stat">Нод: <span>{nodes.length}</span></div>
           <button className="btn btn-ghost btn-sm" style={{width:'100%',justifyContent:'center',marginTop:8}}
             onClick={()=>{setToken('');setAuthed(false);}}>
             <I.LogOut/> Выйти
