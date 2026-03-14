@@ -10,6 +10,11 @@ const authenticator = require('./totp');
 
 
 const app = express();
+
+// ── Public version endpoint (no auth required) ──
+let pkgVersion = 'unknown';
+try { pkgVersion = require('../../package.json').version; } catch(e) {}
+app.get('/api/version', function(req, res) { res.json({ version: pkgVersion }); });
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
@@ -359,4 +364,5 @@ app.listen(PORT, () => {
   setTimeout(recordHistory, 10000);
   setTimeout(cleanExpiredUsers, 5000);
 });
+
 

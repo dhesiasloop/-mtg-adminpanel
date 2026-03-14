@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -742,7 +742,7 @@ function parseVer(raw) {
   return { name: raw.slice(0,20), date: null };
 }
 
-const PANEL_VERSION = 'v1.5.0';
+const PANEL_VERSION_FALLBACK = 'v1.6.0';
 
 function VersionBlock({ nodes }) {
   const [versions, setVersions] = useState({});
@@ -1881,3 +1881,4 @@ ReactDOM.createRoot(document.getElementById('app')).render(<App/>);
 </script>
 </body>
 </html>
+
