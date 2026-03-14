@@ -1,4 +1,6 @@
-require('dotenv').config();
+﻿require('dotenv').config();
+let pkgVersion='unknown';try{pkgVersion=require('../../package.json').version;}catch{}
+app.get('/api/version',(req,res)=>res.json({version:pkgVersion}));
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -14,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// ─── TOTP 2FA ──────────────────────────────────────────────
+// в”Ђв”Ђв”Ђ TOTP 2FA в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 const TOTP_ISSUER = 'MTG Panel';
 
 function getTotpSecret() {
@@ -33,14 +35,14 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// Получить статус 2FA
+// РџРѕР»СѓС‡РёС‚СЊ СЃС‚Р°С‚СѓСЃ 2FA
 app.get('/api/totp/status', (req, res) => {
   const token = req.headers['x-auth-token'];
   if (token !== AUTH_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
   res.json({ enabled: isTotpEnabled() });
 });
 
-// Сгенерировать новый TOTP секрет и QR
+// РЎРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ РЅРѕРІС‹Р№ TOTP СЃРµРєСЂРµС‚ Рё QR
 app.post('/api/totp/setup', async (req, res) => {
   const token = req.headers['x-auth-token'];
   if (token !== AUTH_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
@@ -52,7 +54,7 @@ app.post('/api/totp/setup', async (req, res) => {
   res.json({ secret, qr: qrDataUrl });
 });
 
-// Подтвердить и включить 2FA
+// РџРѕРґС‚РІРµСЂРґРёС‚СЊ Рё РІРєР»СЋС‡РёС‚СЊ 2FA
 app.post('/api/totp/verify', (req, res) => {
   const token = req.headers['x-auth-token'];
   if (token !== AUTH_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
@@ -67,7 +69,7 @@ app.post('/api/totp/verify', (req, res) => {
   }
 });
 
-// Отключить 2FA
+// РћС‚РєР»СЋС‡РёС‚СЊ 2FA
 app.post('/api/totp/disable', (req, res) => {
   const token = req.headers['x-auth-token'];
   if (token !== AUTH_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
@@ -80,12 +82,12 @@ app.post('/api/totp/disable', (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Auth middleware ───────────────────────────────────────
+// в”Ђв”Ђ Auth middleware в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 const AUTH_TOKEN = process.env.AUTH_TOKEN || 'changeme';
 
-// ══════════════════════════════════════════════════════════
+// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 // NODES
-// ══════════════════════════════════════════════════════════
+// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 
 app.get('/api/nodes', (req, res) => {
   const nodes = db.prepare('SELECT id, name, host, ssh_user, ssh_port, base_dir, start_port, created_at FROM nodes').all();
@@ -94,7 +96,7 @@ app.get('/api/nodes', (req, res) => {
 
 app.post('/api/nodes', (req, res) => {
   const { name, host, ssh_user, ssh_port, ssh_key, ssh_password, base_dir, start_port } = req.body;
-  if (!name || !host) return res.status(400).json({ error: 'name и host обязательны' });
+  if (!name || !host) return res.status(400).json({ error: 'name Рё host РѕР±СЏР·Р°С‚РµР»СЊРЅС‹' });
   const result = db.prepare(`
     INSERT INTO nodes (name, host, ssh_user, ssh_port, ssh_key, ssh_password, base_dir, start_port)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -147,7 +149,7 @@ app.get('/api/nodes/:id/traffic', async (req, res) => {
   }
 });
 
-// ── MTG Version check & update ───────────────────────────
+// в”Ђв”Ђ MTG Version check & update в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 app.get('/api/nodes/:id/mtg-version', async (req, res) => {
   const node = db.prepare('SELECT * FROM nodes WHERE id = ?').get(req.params.id);
   if (!node) return res.status(404).json({ error: 'Not found' });
@@ -182,9 +184,9 @@ app.get('/api/status', async (req, res) => {
   res.json(results.map((r, i) => r.status === 'fulfilled' ? r.value : { id: nodes[i].id, name: nodes[i].name, online: false }));
 });
 
-// ══════════════════════════════════════════════════════════
+// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 // USERS
-// ══════════════════════════════════════════════════════════
+// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 
 app.get('/api/nodes/:id/users', async (req, res) => {
   const node = db.prepare('SELECT * FROM nodes WHERE id = ?').get(req.params.id);
@@ -298,7 +300,7 @@ app.post('/api/nodes/:id/users/:name/start', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Connections history ───────────────────────────────────
+// в”Ђв”Ђ Connections history в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 app.get('/api/nodes/:id/users/:name/history', (req, res) => {
   const rows = db.prepare(`
     SELECT connections, recorded_at FROM connections_history
@@ -312,11 +314,11 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// ══════════════════════════════════════════════════════════
+// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 // BACKGROUND JOBS
-// ══════════════════════════════════════════════════════════
+// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 
-// Запись истории подключений каждые 5 минут
+// Р—Р°РїРёСЃСЊ РёСЃС‚РѕСЂРёРё РїРѕРґРєР»СЋС‡РµРЅРёР№ РєР°Р¶РґС‹Рµ 5 РјРёРЅСѓС‚
 async function recordHistory() {
   const nodes = db.prepare('SELECT * FROM nodes').all();
   for (const node of nodes) {
@@ -328,11 +330,11 @@ async function recordHistory() {
       }
     } catch {}
   }
-  // Чистим старые данные (храним 24 часа = 288 записей на юзера)
+  // Р§РёСЃС‚РёРј СЃС‚Р°СЂС‹Рµ РґР°РЅРЅС‹Рµ (С…СЂР°РЅРёРј 24 С‡Р°СЃР° = 288 Р·Р°РїРёСЃРµР№ РЅР° СЋР·РµСЂР°)
   db.prepare("DELETE FROM connections_history WHERE recorded_at < datetime('now', '-24 hours')").run();
 }
 
-// Автоудаление истёкших юзеров раз в час
+// РђРІС‚РѕСѓРґР°Р»РµРЅРёРµ РёСЃС‚С‘РєС€РёС… СЋР·РµСЂРѕРІ СЂР°Р· РІ С‡Р°СЃ
 async function cleanExpiredUsers() {
   const expired = db.prepare("SELECT u.*, n.* FROM users u JOIN nodes n ON u.node_id = n.id WHERE u.expires_at IS NOT NULL AND u.expires_at < datetime('now')").all();
   for (const u of expired) {
@@ -340,7 +342,7 @@ async function cleanExpiredUsers() {
       const node = db.prepare('SELECT * FROM nodes WHERE id = ?').get(u.node_id);
       await ssh.removeRemoteUser(node, u.name);
       db.prepare('DELETE FROM users WHERE id = ?').run(u.id);
-      console.log(`🗑️ Auto-deleted expired user: ${u.name} on node ${u.node_id}`);
+      console.log(`рџ—‘пёЏ Auto-deleted expired user: ${u.name} on node ${u.node_id}`);
     } catch (e) {
       console.error(`Failed to delete expired user ${u.name}:`, e.message);
     }
@@ -351,9 +353,10 @@ setInterval(recordHistory, 5 * 60 * 1000);
 setInterval(cleanExpiredUsers, 60 * 60 * 1000);
 
 app.listen(PORT, () => {
-  console.log(`🔒 MTG Panel running on http://0.0.0.0:${PORT}`);
-  console.log(`🔑 Auth token: ${AUTH_TOKEN}`);
-  // ткай запускаем сразу при старте
+  console.log(`рџ”’ MTG Panel running on http://0.0.0.0:${PORT}`);
+  console.log(`рџ”‘ Auth token: ${AUTH_TOKEN}`);
+  // С‚РєР°Р№ Р·Р°РїСѓСЃРєР°РµРј СЃСЂР°Р·Сѓ РїСЂРё СЃС‚Р°СЂС‚Рµ
   setTimeout(recordHistory, 10000);
   setTimeout(cleanExpiredUsers, 5000);
 });
+
