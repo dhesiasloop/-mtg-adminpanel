@@ -11,6 +11,7 @@ function agentFetch(host, port, path) {
       port: parseInt(port),
       path,
       method: 'GET',
+      family: 4,
       headers: { 'x-agent-token': AGENT_TOKEN },
       timeout: 3000,
     }, res => {
