@@ -798,14 +798,13 @@ function parseVer(raw) {
 
 const PANEL_VERSION_FALLBACK = 'v1.6.0'; // fallback if API unavailable
 
-function VersionBlock({ nodes }) {
+function VersionBlock({ nodes, panelVersion }) {
   const [versions, setVersions] = useState({});
   const [updating, setUpdating] = useState({});
   const [checking, setChecking] = useState(false);
   const [open, setOpen] = useState(false);
   const [latestRelease, setLatestRelease] = useState(null);
   const [checkingRelease, setCheckingRelease] = useState(false);
-  const [panelVersion, setPanelVersion] = useState(null); // loaded from /api/version
 
   const checkVersions = useCallback(async () => {
     if(!nodes.length) return;
@@ -833,13 +832,6 @@ function VersionBlock({ nodes }) {
 
   useEffect(() => { if(nodes.length) checkVersions(); }, [nodes.length]);
   useEffect(() => { if(open && !latestRelease) checkLatestRelease(); }, [open]);
-
-  // Load panel version from backend
-  useEffect(() => {
-    api('GET', '/api/version')
-      .then(r => setPanelVersion(r.version ? (r.version.startsWith('v') ? r.version : `v${r.version}`) : PANEL_VERSION_FALLBACK))
-      .catch(() => setPanelVersion(PANEL_VERSION_FALLBACK));
-  }, []);
 
   const updateNode = async (node) => {
     setUpdating(u => ({...u, [node.id]: true}));
@@ -1131,7 +1123,7 @@ function NodeModal({ node, onClose, onSave }) {
     finally { setAgentChecking(false); }
   };
 
-  const installCmd = `mkdir -p /opt/mtg-agent && cd /opt/mtg-agent && curl -fsSL https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/dev/mtg-agent/install-agent.sh | bash -s ${process.env.AGENT_TOKEN || 'mtg-agent-secret'}`;
+  const installCmd = `mkdir -p /opt/mtg-agent && cd /opt/mtg-agent && curl -fsSL https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/dev/mtg-agent/install-agent.sh | bash`;
 
   return (
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
@@ -1969,6 +1961,7 @@ function App() {
   const [page, setPage] = useState('dashboard');
   const [nodes, setNodes] = useState([]);
   const [selNode, setSelNode] = useState(null);
+  const [panelVersion, setPanelVersion] = useState(null);
   const toasts = useToast();
 
   const loadNodes = useCallback(async () => {
@@ -1983,6 +1976,13 @@ function App() {
       }));
       setNodes(wc);
     } catch {}
+  }, []);
+
+  // Load panel version once on mount
+  useEffect(() => {
+    api('GET', '/api/version')
+      .then(r => setPanelVersion(r.version ? (r.version.startsWith('v') ? r.version : `v${r.version}`) : null))
+      .catch(() => {});
   }, []);
 
   useEffect(()=>{ if(authed) loadNodes(); },[authed]);
@@ -2007,7 +2007,7 @@ function App() {
           <div className="logo-icon"><I.Zap/></div>
           <div className="logo-texts">
             <div className="logo-name">MTG Panel</div>
-            <div className="logo-sub">adminpanel v1.5</div>
+            <div className="logo-sub">{panelVersion || 'adminpanel'}</div>
           </div>
         </div>
 
@@ -2020,7 +2020,7 @@ function App() {
           ))}
         </nav>
 
-        <VersionBlock nodes={nodes}/>
+        <VersionBlock nodes={nodes} panelVersion={panelVersion}/>
 
         <div className="sidebar-footer">
           <button className="btn btn-ghost btn-sm" style={{width:'100%',justifyContent:'center',marginTop:8}}

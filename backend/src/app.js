@@ -10,7 +10,7 @@ const authenticator = require('./totp');
 const AUTH_TOKEN = process.env.AUTH_TOKEN || 'changeme';
 const PORT       = process.env.PORT || 3000;
 
-// Version: reads from /app/package.json (= backend/package.json in Docker)
+// Version: /app/src/app.js → ../package.json = /app/package.json = backend/package.json in Docker
 let pkgVersion = 'unknown';
 try { pkgVersion = require('../package.json').version; } catch (_) {}
 
