@@ -8,9 +8,9 @@ function agentFetch(host, port, path) {
   return new Promise((resolve, reject) => {
     const { exec } = require('child_process');
     const url = `http://${host}:${port}${path}`;
-    const cmd = `curl -s -4 --connect-timeout 3 -H "x-agent-token: ${AGENT_TOKEN}" "${url}"`;
-    exec(cmd, { timeout: 5000 }, (err, stdout, stderr) => {
-      if (err) return reject(new Error(err.message));
+    const cmd = `wget -q -4 -O- --timeout=3 --header="x-agent-token: ${AGENT_TOKEN}" "${url}"`;
+    exec(cmd, { timeout: 5000 }, (err, stdout) => {
+      if (err) return reject(new Error('Agent unreachable'));
       try { resolve(JSON.parse(stdout)); }
       catch { reject(new Error('Invalid JSON from agent')); }
     });
