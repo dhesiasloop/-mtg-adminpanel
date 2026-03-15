@@ -1,0 +1,11 @@
+services:
+  mtg-agent:
+    build: .
+    container_name: mtg-agent
+    restart: unless-stopped
+    ports:
+      - "8081:8081"          # доступен с панельного сервера
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # читаем docker без прав root
+    environment:
+      - AGENT_TOKEN=${AGENT_TOKEN:-mtg-agent-secret}
