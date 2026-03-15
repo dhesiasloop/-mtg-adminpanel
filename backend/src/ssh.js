@@ -6,27 +6,13 @@ const AGENT_TOKEN = process.env.AGENT_TOKEN || 'mtg-agent-secret';
 // ── Agent HTTP client ─────────────────────────────────────
 function agentFetch(host, port, path) {
   return new Promise((resolve, reject) => {
-    // Resolve to IPv4 explicitly to avoid Node.js defaulting to IPv6
-    require('dns').resolve4(host, (err, addrs) => {
-      const ip = err ? host : addrs[0];
-      const req = http.request({
-        hostname: ip,
-        port: parseInt(port),
-        path,
-        method: 'GET',
-        headers: { 'x-agent-token': AGENT_TOKEN, 'Host': host },
-        timeout: 3000,
-      }, res => {
-        let data = '';
-        res.on('data', chunk => { data += chunk; });
-        res.on('end', () => {
-          try { resolve(JSON.parse(data)); }
-          catch { reject(new Error('Invalid JSON from agent')); }
-        });
-      });
-      req.on('error', reject);
-      req.on('timeout', () => { req.destroy(); reject(new Error('Agent timeout')); });
-      req.end();
+    const { exec } = require('child_process');
+    const url = `http://${host}:${port}${path}`;
+    const cmd = `curl -s -4 --connect-timeout 3 -H "x-agent-token: ${AGENT_TOKEN}" "${url}"`;
+    exec(cmd, { timeout: 5000 }, (err, stdout, stderr) => {
+      if (err) return reject(new Error(err.message));
+      try { resolve(JSON.parse(stdout)); }
+      catch { reject(new Error('Invalid JSON from agent')); }
     });
   });
 }
