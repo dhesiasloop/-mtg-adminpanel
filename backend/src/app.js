@@ -162,7 +162,7 @@ app.post('/api/nodes/:id/update-agent', async (req, res) => {
   const node = db.prepare('SELECT * FROM nodes WHERE id = ?').get(req.params.id);
   if (!node) return res.status(404).json({ error: 'Not found' });
   const token = process.env.AGENT_TOKEN || 'mtg-agent-secret';
-  const cmd = `bash <(curl -fsSL https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/dev/mtg-agent/install-agent.sh) ${token}`;
+  const cmd = `curl -fsSL https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/dev/mtg-agent/install-agent.sh -o /tmp/mtg-install.sh && bash /tmp/mtg-install.sh ${token}`;
   try {
     const r = await ssh.sshExec(node, cmd);
     // Success if script ran without fatal error
