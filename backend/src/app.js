@@ -217,16 +217,25 @@ app.get('/api/nodes/:id/users', async (req, res) => {
 
   try {
     const remoteUsers = await ssh.getRemoteUsers(node);
-    // Update last_seen_at for users with active connections
+
+    // Real-time device limit enforcement
     for (const remote of remoteUsers) {
+      const dbUser = dbUsers.find(u => u.name === remote.name);
+      if (dbUser && dbUser.max_devices && (remote.connections || 0) > dbUser.max_devices) {
+        console.log(`⚠️ Device limit exceeded: ${remote.name} (${remote.connections}/${dbUser.max_devices}) — stopping`);
+        ssh.stopRemoteUser(node, remote.name).catch(() => {});
+        db.prepare('UPDATE users SET status=? WHERE node_id=? AND name=?').run('stopped', req.params.id, remote.name);
+        remote.status = 'stopped';
+        remote.connections = 0;
+      }
       if ((remote.connections || 0) > 0) {
-        db.prepare("UPDATE users SET last_seen_at = datetime('now') WHERE node_id = ? AND name = ?")
+        db.prepare("UPDATE users SET last_seen_at=datetime('now') WHERE node_id=? AND name=?")
           .run(req.params.id, remote.name);
       }
     }
+
     res.json(dbUsers.map(u => mkUser(u, remoteUsers.find(r => r.name === u.name))));
   } catch (_) {
-    // When SSH fails, show snapshot traffic for stopped users
     res.json(dbUsers.map(u => mkUser(u, null)));
   }
 });

@@ -1498,7 +1498,8 @@ function EditModal({ user, nodeId, onClose, onSave }) {
           {/* Device limit */}
           <div style={{borderTop:'1px solid var(--b1)',paddingTop:14,marginTop:4}}>
             <div style={{fontSize:13,fontWeight:600,marginBottom:10,display:'flex',alignItems:'center',gap:8}}>
-              <I.Wifi/> Ограничения устройств
+              <span style={{width:16,height:16,display:'inline-flex',flexShrink:0}}><I.Wifi/></span>
+              Ограничения устройств
             </div>
             <div className="form-group">
               <label className="form-label">Макс. одновременных устройств</label>
@@ -1514,7 +1515,8 @@ function EditModal({ user, nodeId, onClose, onSave }) {
           {/* Auto traffic reset */}
           <div style={{borderTop:'1px solid var(--b1)',paddingTop:14,marginTop:4}}>
             <div style={{fontSize:13,fontWeight:600,marginBottom:10,display:'flex',alignItems:'center',gap:8}}>
-              <I.RefreshCw/> Автосброс трафика
+              <span style={{width:16,height:16,display:'inline-flex',flexShrink:0}}><I.RefreshCw/></span>
+              Автосброс трафика
             </div>
             <div className="form-group">
               <label className="form-label">Интервал сброса</label>
@@ -1538,7 +1540,8 @@ function EditModal({ user, nodeId, onClose, onSave }) {
           {(user.total_traffic_rx_bytes > 0 || user.total_traffic_tx_bytes > 0) && (
             <div style={{borderTop:'1px solid var(--b1)',paddingTop:14,marginTop:4}}>
               <div style={{fontSize:13,fontWeight:600,marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
-                <I.Activity/> Накопленный трафик
+                <span style={{width:16,height:16,display:'inline-flex',flexShrink:0}}><I.Activity/></span>
+                Накопленный трафик
               </div>
               <div style={{display:'flex',gap:16}}>
                 <div style={{background:'var(--bg3)',borderRadius:8,padding:'8px 14px',flex:1,textAlign:'center'}}>
