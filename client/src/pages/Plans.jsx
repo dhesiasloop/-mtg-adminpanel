@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { catalogApi, ordersApi, paymentsApi } from '../api/client';
 import { useToast } from '../components/ui/Toast';
-import { Zap, Globe, Check, Star } from 'lucide-react';
+import { Zap, Globe, Check, Star, ShieldCheck, X } from 'lucide-react';
 import Spinner from '../components/ui/Spinner';
 
 export default function Plans() {
@@ -12,6 +12,7 @@ export default function Plans() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedLoc, setSelectedLoc] = useState('');
   const [ordering, setOrdering] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -123,9 +124,61 @@ export default function Plans() {
             <p className="text-sm text-gray-400">Выбран тариф:</p>
             <p className="font-bold">{selectedPlan.name} — {selectedPlan.price} ₽ / {selectedPlan.period === 'monthly' ? 'мес.' : selectedPlan.period === 'yearly' ? 'год' : 'день'}</p>
           </div>
-          <button onClick={handleOrder} disabled={ordering} className="btn-primary px-8 flex items-center gap-2">
-            {ordering ? <Spinner size="sm" /> : <><Zap size={16} /> Оформить и оплатить</>}
+          <button onClick={() => setShowConfirm(true)} disabled={ordering} className="btn-primary px-8 flex items-center gap-2">
+            <Zap size={16} /> Оформить заказ
           </button>
+        </div>
+      )}
+
+      {/* Confirmation modal */}
+      {showConfirm && selectedPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowConfirm(false)}>
+          <div className="bg-surface border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-5 animate-fade-in" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <ShieldCheck size={20} className="text-primary" /> Подтверждение заказа
+              </h2>
+              <button onClick={() => setShowConfirm(false)} className="p-1.5 text-gray-500 hover:text-gray-300 transition rounded-lg hover:bg-white/10">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-sm text-gray-400">Тариф</span>
+                <span className="font-semibold">{selectedPlan.name}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-sm text-gray-400">Период</span>
+                <span className="font-semibold">{selectedPlan.period === 'monthly' ? '1 месяц' : selectedPlan.period === 'yearly' ? '1 год' : '1 день'}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-sm text-gray-400">Локация</span>
+                <span className="font-semibold">{selectedLoc ? `${selectedLoc} ${locations.find(l => l.flag === selectedLoc)?.name || ''}` : '🌐 Авто (лучшая)'}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-sm text-gray-400">Устройства</span>
+                <span className="font-semibold">до {selectedPlan.max_devices}</span>
+              </div>
+              <div className="flex justify-between items-center py-3">
+                <span className="text-sm text-gray-400">К оплате</span>
+                <span className="text-2xl font-black gradient-text">{selectedPlan.price} ₽</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500 text-center">
+              Нажимая «Перейти к оплате», вы соглашаетесь с условиями публичной оферты
+            </p>
+
+            <div className="flex gap-3">
+              <button onClick={() => setShowConfirm(false)} className="btn-secondary flex-1">
+                Отмена
+              </button>
+              <button onClick={() => { setShowConfirm(false); handleOrder(); }} disabled={ordering} className="btn-primary flex-1 flex items-center justify-center gap-2">
+                {ordering ? <Spinner size="sm" /> : <><Zap size={16} /> Перейти к оплате</>}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

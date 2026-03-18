@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [proxyStats, setProxyStats] = useState({});
+  const [proxyPings, setProxyPings] = useState({});
   const [lastUpdate, setLastUpdate] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const intervalRef = useRef(null);
@@ -83,11 +84,14 @@ export default function Dashboard() {
 
       setLastUpdate(new Date());
 
-      // Fetch live stats for each proxy
+      // Fetch live stats and ping for each proxy
       proxyList.forEach(p => {
         if (p.order_id) {
           proxiesApi.stats(p.order_id).then(({ data }) => {
             setProxyStats(prev => ({ ...prev, [p.order_id]: data }));
+          }).catch(() => {});
+          proxiesApi.ping(p.order_id).then(({ data }) => {
+            setProxyPings(prev => ({ ...prev, [p.order_id]: data.ping }));
           }).catch(() => {});
         }
       });
@@ -309,15 +313,25 @@ export default function Dashboard() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {s.proxies.map(p => {
               const live = proxyStats[p.order_id];
+              const ping = proxyPings[p.order_id];
               const daysLeft = p.expires_at ? Math.max(0, Math.ceil((new Date(p.expires_at) - Date.now()) / 86400000)) : null;
               return (
                 <Link to={`/proxies/${p.order_id}`} key={p.order_id}
                   className="bg-surface-light rounded-xl p-4 hover:bg-surface-lighter transition group">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xl">{p.node_flag || <Globe size={18} />}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      live?.running ? 'bg-success/10 text-success' : 'bg-gray-500/10 text-gray-400'
-                    }`}>{live?.running ? '● Онлайн' : '○ Офлайн'}</span>
+                    <div className="flex items-center gap-2">
+                      {ping !== undefined && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          ping < 0 ? 'bg-danger/10 text-danger' :
+                          ping < 100 ? 'bg-success/10 text-success' :
+                          ping < 200 ? 'bg-warning/10 text-warning' : 'bg-danger/10 text-danger'
+                        }`}>{ping < 0 ? 'N/A' : `${ping} ms`}</span>
+                      )}
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        live?.running ? 'bg-success/10 text-success' : 'bg-gray-500/10 text-gray-400'
+                      }`}>{live?.running ? '● Онлайн' : '○ Офлайн'}</span>
+                    </div>
                   </div>
                   <p className="text-sm font-semibold text-gray-200 group-hover:text-white transition truncate">
                     {p.plan_name || `Прокси #${p.order_id}`}

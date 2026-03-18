@@ -500,6 +500,31 @@ router.get('/proxies/:orderId/history', auth.authCustomer, (req, res) => {
   res.json(rows.reverse());
 });
 
+router.get('/proxies/:orderId/ping', auth.authCustomer, async (req, res) => {
+  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND customer_id = ? AND status = ?')
+    .get(req.params.orderId, req.customer.id, 'active');
+  if (!order || !order.node_id) return res.status(404).json({ error: 'Прокси не найден' });
+
+  const node = db.prepare('SELECT * FROM nodes WHERE id = ?').get(order.node_id);
+  if (!node) return res.status(404).json({ error: 'Сервер не найден' });
+
+  try {
+    const start = Date.now();
+    await new Promise((resolve, reject) => {
+      const net = require('net');
+      const sock = net.createConnection({ host: node.host, port: node.port || 22, timeout: 5000 }, () => {
+        sock.destroy();
+        resolve();
+      });
+      sock.on('error', reject);
+      sock.on('timeout', () => { sock.destroy(); reject(new Error('timeout')); });
+    });
+    res.json({ ping: Date.now() - start });
+  } catch {
+    res.json({ ping: -1 });
+  }
+});
+
 // ═══════════════════════════════════════════════════════════
 // PAYMENTS
 // ═══════════════════════════════════════════════════════════

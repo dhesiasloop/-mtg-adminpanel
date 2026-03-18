@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Zap, Shield, Gauge, Globe, ChevronDown, ArrowRight, Info, AlertTriangle, CheckCircle, Megaphone, X } from 'lucide-react';
+import { Zap, Shield, Gauge, Globe, ChevronDown, ArrowRight, Info, AlertTriangle, CheckCircle, Megaphone, X, LayoutDashboard } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { catalogApi } from '../api/client';
+import { useAuthStore } from '../store/auth';
 import axios from 'axios';
 
 const announcementConfig = {
@@ -26,6 +27,7 @@ const faqs = [
 ];
 
 export default function Landing() {
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
   const [plans, setPlans] = useState([]);
   const [openFaq, setOpenFaq] = useState(null);
   const [version, setVersion] = useState('');
@@ -60,8 +62,16 @@ export default function Landing() {
             <span className="text-lg font-bold gradient-text">ST VILLAGE PROXY</span>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="btn-secondary btn-sm">Войти</Link>
-            <Link to="/register" className="btn-primary btn-sm">Регистрация</Link>
+            {isAuthenticated ? (
+              <Link to="/dashboard" className="btn-primary btn-sm flex items-center gap-2">
+                <LayoutDashboard size={16} /> Личный кабинет
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="btn-secondary btn-sm">Войти</Link>
+                <Link to="/register" className="btn-primary btn-sm">Регистрация</Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -81,12 +91,20 @@ export default function Landing() {
             MTProto прокси с мониторингом в реальном времени, автоматическим управлением и мгновенным подключением через QR-код
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register" className="btn-primary btn-lg">
-              Начать бесплатно <ArrowRight size={18} />
-            </Link>
-            <a href="#plans" className="btn-secondary btn-lg">
-              Смотреть тарифы
-            </a>
+            {isAuthenticated ? (
+              <Link to="/dashboard" className="btn-primary btn-lg">
+                Перейти в кабинет <ArrowRight size={18} />
+              </Link>
+            ) : (
+              <>
+                <Link to="/register" className="btn-primary btn-lg">
+                  Начать бесплатно <ArrowRight size={18} />
+                </Link>
+                <a href="#plans" className="btn-secondary btn-lg">
+                  Смотреть тарифы
+                </a>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -165,7 +183,7 @@ export default function Landing() {
                   <li>✓ Сброс трафика: {plan.traffic_reset_interval === 'monthly' ? 'ежемесячно' : plan.traffic_reset_interval === 'daily' ? 'ежедневно' : plan.traffic_reset_interval}</li>
                   <li>✓ Мониторинг 24/7</li>
                 </ul>
-                <Link to="/register" className={i === 1 ? 'btn-primary w-full' : 'btn-secondary w-full'}>
+                <Link to={isAuthenticated ? '/plans' : '/register'} className={i === 1 ? 'btn-primary w-full' : 'btn-secondary w-full'}>
                   Выбрать
                 </Link>
               </div>

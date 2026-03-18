@@ -11,7 +11,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import {
   ArrowLeft, Copy, QrCode, Wifi, Clock,
-  Users, ToggleLeft, ToggleRight, Download, Upload
+  Users, ToggleLeft, ToggleRight, Download, Upload, Signal
 } from 'lucide-react';
 import Spinner from '../components/ui/Spinner';
 
@@ -22,6 +22,7 @@ export default function ProxyDetail() {
   const [order, setOrder] = useState(null);
   const [proxy, setProxy] = useState(null);
   const [stats, setStats] = useState(null);
+  const [ping, setPing] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
@@ -33,12 +34,14 @@ export default function ProxyDetail() {
       proxiesApi.list(),
       proxiesApi.stats(orderId).catch(() => ({ data: null })),
       proxiesApi.history(orderId).catch(() => ({ data: [] })),
-    ]).then(([o, pl, s, h]) => {
+      proxiesApi.ping(orderId).catch(() => ({ data: { ping: -1 } })),
+    ]).then(([o, pl, s, h, pg]) => {
       setOrder(o.data);
       const px = (pl.data || []).find(p => p.order_id === Number(orderId));
       setProxy(px || null);
       setStats(s.data);
       setHistory(h.data || []);
+      setPing(pg.data?.ping ?? -1);
     }).finally(() => setLoading(false));
   };
 
@@ -139,10 +142,20 @@ export default function ProxyDetail() {
       {proxy && (
         <div className="card flex items-center gap-4">
           <div className={`w-3 h-3 rounded-full ${stats?.running ? 'bg-success animate-pulse' : 'bg-gray-500'}`} />
-          <div>
+          <div className="flex-1">
             <p className="font-semibold">{stats?.running ? 'Прокси онлайн' : 'Прокси офлайн'}</p>
             <p className="text-xs text-gray-400">Сервер: {proxy.node_name || proxy.node_host}</p>
           </div>
+          {ping !== null && (
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
+              ping < 0 ? 'bg-danger/10 text-danger' :
+              ping < 100 ? 'bg-success/10 text-success' :
+              ping < 200 ? 'bg-warning/10 text-warning' : 'bg-danger/10 text-danger'
+            }`}>
+              <Signal size={14} />
+              {ping < 0 ? 'Недоступен' : `${ping} ms`}
+            </div>
+          )}
         </div>
       )}
 

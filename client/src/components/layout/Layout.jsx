@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth';
 import { authApi } from '../../api/client';
-import { LayoutDashboard, Wifi, CreditCard, User, LogOut, Menu, X, Zap, Tag } from 'lucide-react';
+import { LayoutDashboard, Wifi, CreditCard, User, LogOut, Menu, X, Zap, Tag, Home } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import AnnouncementsBanner from '../ui/AnnouncementsBanner';
 import axios from 'axios';
@@ -97,6 +97,9 @@ export default function Layout() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
             <span>© {new Date().getFullYear()} ST VILLAGE PROXY</span>
             <div className="flex items-center gap-4">
+              <Link to="/" className="hover:text-primary transition flex items-center gap-1">
+                <Home size={10} /> Главная
+              </Link>
               {version && <Link to="/updates" className="hover:text-primary transition flex items-center gap-1">
                 <Tag size={10} /> v{version}
               </Link>}

@@ -102,6 +102,7 @@ export const proxiesApi = {
   list: () => api.get('/proxies'),
   stats: (orderId) => api.get(`/proxies/${orderId}/stats`),
   history: (orderId) => api.get(`/proxies/${orderId}/history`),
+  ping: (orderId) => api.get(`/proxies/${orderId}/ping`),
 };
 
 // ── Payments ──────────────────────────────────────────────
