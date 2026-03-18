@@ -1060,7 +1060,7 @@ function VersionBlock({ nodes, panelVersion }) {
                         <I.Download/> {updateInfo.panel.latest}
                       </a>
                     )}
-                    <a href="https://github.com/MaksimTMB/mtg-adminpanel/releases" target="_blank"
+                    <a href="https://github.com/Reibik/-mtg-adminpanel/releases" target="_blank"
                       className="btn btn-ghost btn-sm" style={{textDecoration:'none'}}>
                       Releases
                     </a>
@@ -1367,7 +1367,7 @@ function NodeModal({ node, onClose, onSave }) {
     finally { setAgentUpdating(false); }
   };
 
-  const installCmd = `mkdir -p /opt/mtg-agent && cd /opt/mtg-agent && curl -fsSL https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/dev/mtg-agent/install-agent.sh | bash`;
+  const installCmd = `mkdir -p /opt/mtg-agent && cd /opt/mtg-agent && curl -fsSL https://raw.githubusercontent.com/Reibik/-mtg-adminpanel/dev/mtg-agent/install-agent.sh | bash`;
 
   return (
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
@@ -1441,10 +1441,10 @@ function NodeModal({ node, onClose, onSave }) {
                 <div style={{fontSize:12,color:'var(--t3)',marginBottom:8}}>Выполни на ноде {f.host}:</div>
                 <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
                   <code style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--cy)',flex:1,wordBreak:'break-all',lineHeight:1.6,background:'var(--bg)',padding:'8px 10px',borderRadius:7,border:'1px solid var(--b1)'}}>
-                    {`mkdir -p /opt/mtg-agent && cd /opt/mtg-agent && curl -fsSL https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/dev/mtg-agent/install-agent.sh | bash`}
+                    {`mkdir -p /opt/mtg-agent && cd /opt/mtg-agent && curl -fsSL https://raw.githubusercontent.com/Reibik/-mtg-adminpanel/dev/mtg-agent/install-agent.sh | bash`}
                   </code>
                   <button className="btn btn-secondary btn-sm" style={{flexShrink:0}}
-                    onClick={()=>{copyText(`mkdir -p /opt/mtg-agent && cd /opt/mtg-agent && curl -fsSL https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/dev/mtg-agent/install-agent.sh | bash`); toast('Скопировано','success');}}>
+                    onClick={()=>{copyText(`mkdir -p /opt/mtg-agent && cd /opt/mtg-agent && curl -fsSL https://raw.githubusercontent.com/Reibik/-mtg-adminpanel/dev/mtg-agent/install-agent.sh | bash`); toast('Скопировано','success');}}>
                     <I.Copy/>
                   </button>
                 </div>

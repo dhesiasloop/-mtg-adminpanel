@@ -114,7 +114,7 @@
 ### 1. Клонировать репозиторий
 
 ```bash
-git clone https://github.com/MaksimTMB/mtg-adminpanel.git /opt/mtg-adminpanel
+git clone https://github.com/Reibik/-mtg-adminpanel.git /opt/mtg-adminpanel
 cd /opt/mtg-adminpanel
 ```
 
@@ -163,7 +163,7 @@ docker compose up -d
 ```bash
 ssh root@your-node.com
 mkdir -p /opt/mtg-agent && cd /opt/mtg-agent
-wget -q https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/main/mtg-agent/install-agent.sh -O install.sh
+wget -q https://raw.githubusercontent.com/Reibik/-mtg-adminpanel/main/mtg-agent/install-agent.sh -O install.sh
 bash install.sh mtg-agent-secret
 ```
 
@@ -174,7 +174,7 @@ bash install.sh mtg-agent-secret
 Вручную:
 ```bash
 cd /opt/mtg-agent
-wget -q https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/main/mtg-agent/main.py -O main.py
+wget -q https://raw.githubusercontent.com/Reibik/-mtg-adminpanel/main/mtg-agent/main.py -O main.py
 docker compose down && docker compose up -d
 ```
 

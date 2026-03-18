@@ -19,7 +19,7 @@ DIM='\033[2m'
 NC='\033[0m'
 
 INSTALL_DIR="/opt/mtg-adminpanel"
-REPO_URL="https://github.com/MaksimTMB/mtg-adminpanel.git"
+REPO_URL="https://github.com/Reibik/-mtg-adminpanel.git"
 SERVICE_NAME="stvillage-proxy"
 NGINX_CONF="stvillage-proxy"
 LOG_FILE="/tmp/stvillage-deploy.log"

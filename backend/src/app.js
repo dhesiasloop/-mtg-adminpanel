@@ -86,8 +86,8 @@ function githubGet(path) {
 app.get('/api/check-updates', async (req, res) => {
   try {
     const [release, agentPkg] = await Promise.allSettled([
-      githubGet('/repos/MaksimTMB/mtg-adminpanel/releases/latest'),
-      githubGet('/repos/MaksimTMB/mtg-adminpanel/contents/mtg-agent/main.py?ref=main'),
+      githubGet('/repos/Reibik/-mtg-adminpanel/releases/latest'),
+      githubGet('/repos/Reibik/-mtg-adminpanel/contents/mtg-agent/main.py?ref=main'),
     ]);
 
     const latest = release.status === 'fulfilled' ? release.value : null;
@@ -274,7 +274,7 @@ app.post('/api/nodes/:id/update-agent', async (req, res) => {
   if (!node) return res.status(404).json({ error: 'Not found' });
   const token = process.env.AGENT_TOKEN || 'mtg-agent-secret';
   // Use wget (more universally available than curl), write to temp file
-  const RAW = 'https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/dev/mtg-agent';
+  const RAW = 'https://raw.githubusercontent.com/Reibik/-mtg-adminpanel/dev/mtg-agent';
   const cmd = [
     `mkdir -p /opt/mtg-agent && cd /opt/mtg-agent`,
     `wget -q "${RAW}/main.py" -O main.py`,

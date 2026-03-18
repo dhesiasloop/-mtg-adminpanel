@@ -5,7 +5,7 @@ set -e
 
 TOKEN="${1:-mtg-agent-secret}"
 INSTALL_DIR="/opt/mtg-agent"
-RAW="https://raw.githubusercontent.com/MaksimTMB/mtg-adminpanel/dev/mtg-agent"
+RAW="https://raw.githubusercontent.com/Reibik/-mtg-adminpanel/dev/mtg-agent"
 
 echo "==> MTG Agent install/update..."
 mkdir -p "$INSTALL_DIR"

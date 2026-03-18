@@ -24,7 +24,7 @@ echo -e "\033[0;36m  ▶\033[0m Загрузка ST VILLAGE PROXY..."
 apt-get update -qq && apt-get install -y -qq git curl > /dev/null 2>&1
 
 if [ ! -d "$INSTALL_DIR" ]; then
-    git clone -q https://github.com/MaksimTMB/mtg-adminpanel.git "$INSTALL_DIR"
+    git clone -q https://github.com/Reibik/-mtg-adminpanel.git "$INSTALL_DIR"
 fi
 
 if [ -f "$INSTALL_DIR/deploy.sh" ]; then
