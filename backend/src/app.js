@@ -625,6 +625,61 @@ function parseBytes(str) {
 }
 
 // ── Background jobs ───────────────────────────────────────
+
+// Sync GitHub Releases → changelog table
+async function syncGitHubChangelog() {
+  try {
+    const releases = await githubGet('/repos/Reibik/-mtg-adminpanel/releases?per_page=50');
+    if (!Array.isArray(releases)) return;
+
+    for (const rel of releases) {
+      if (!rel.tag_name || rel.draft) continue;
+      const version = rel.tag_name.replace(/^v/, '');
+      const title = rel.name || `v${version}`;
+      const published = rel.published_at || new Date().toISOString();
+
+      // Parse markdown body → clean array of items
+      const changes = [];
+      if (rel.body) {
+        for (const line of rel.body.split('\n')) {
+          const trimmed = line.trim();
+          // Skip headings, empty lines
+          if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('---')) continue;
+          // Parse list items: "- text" or "* text"
+          const m = trimmed.match(/^[-*]\s+\*{0,2}(.+?)\*{0,2}$/);
+          if (m) {
+            let item = m[1].trim();
+            // Remove bold markers, backticks, leading/trailing punctuation
+            item = item.replace(/\*{1,2}/g, '').replace(/`/g, '').trim();
+            // Skip sub-items that are too technical
+            if (item.length > 3 && item.length < 200) changes.push(item);
+          }
+        }
+      }
+
+      if (changes.length === 0) changes.push(title);
+
+      const changesJson = JSON.stringify(changes);
+
+      // Upsert: insert or update existing
+      const existing = db.prepare('SELECT id, changes FROM changelog WHERE version = ?').get(version);
+      if (existing) {
+        // Update only if changes differ
+        if (existing.changes !== changesJson) {
+          db.prepare('UPDATE changelog SET title=?, changes=?, released_at=? WHERE id=?')
+            .run(title, changesJson, published, existing.id);
+        }
+      } else {
+        db.prepare('INSERT INTO changelog (version, title, changes, released_at) VALUES (?, ?, ?, ?)')
+          .run(version, title, changesJson, published);
+      }
+    }
+    console.log(`📋 Changelog synced: ${releases.length} releases`);
+  } catch (e) {
+    console.error('Changelog sync error:', e.message);
+  }
+}
+
 async function recordHistory() {
   const nodes = db.prepare('SELECT * FROM nodes').all();
   for (const node of nodes) {
@@ -701,6 +756,7 @@ async function cleanExpiredUsers() {
 
 setInterval(recordHistory,     5  * 60 * 1000);
 setInterval(cleanExpiredUsers, 60  * 60 * 1000);
+setInterval(syncGitHubChangelog, 60 * 60 * 1000);
 setInterval(() => clientRoutes.processAutoRenewals().catch(e => console.error('Auto-renewal error:', e)), 3600000);
 setInterval(() => clientRoutes.checkPendingPayments().catch(e => console.error('Payment check error:', e)), 2 * 60 * 1000);
 
@@ -710,6 +766,7 @@ app.listen(PORT, () => {
   console.log(`📦 Version: ${pkgVersion}`);
   setTimeout(recordHistory,     10000);
   setTimeout(cleanExpiredUsers,  5000);
+  setTimeout(syncGitHubChangelog, 3000);
   setTimeout(() => clientRoutes.processAutoRenewals().catch(() => {}), 15000);
   setTimeout(() => clientRoutes.checkPendingPayments().catch(() => {}), 20000);
 });
